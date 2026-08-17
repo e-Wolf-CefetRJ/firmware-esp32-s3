@@ -5,19 +5,21 @@ namespace {
     static uint16_t pos = 0;
 
     static void processLine(char *line) {
+        Serial.print("[PARSER] Received: ");
+        Serial.println(line);
 
-        // Troca as vírgulas por espaço
+        // Troca vírgulas por espaço
         char *p = line;
         while (*p) {
-            if (*p == ',') 
-                *p = ' ';
-
+            if (*p == ',') *p = ' ';
             p++;
         }
 
         // ACK
         if (strncmp(line, "ACK:", 4) == 0) {
             ACK::setLast(line + 4);
+            Serial.print("[PARSER] ACK Received: ");
+            Serial.println(line + 4);
             return;
         }
 
@@ -49,6 +51,8 @@ namespace {
                 else if (strcmp(key, "PPR") == 0)    Data::config.ppr = (uint8_t)atoi(value);
                 else if (strcmp(key, "MAXPCT") == 0) Data::config.maxPct = val;
                 else if (strcmp(key, "MS") == 0)       Data::data.now = (uint32_t)val;
+
+                // VALORES ATUALMENTE NÃO RECEBIDOS
                 else if (strcmp(key, "OVR") == 0)      Data::data.overrideEnabled = (val != 0);
                 else if (strcmp(key, "OVRPCT") == 0)   Data::data.overridePct = val;
                 else if (strcmp(key, "PWMHZ") == 0)    Data::config.pwm_hz = (uint16_t)val;
@@ -58,8 +62,11 @@ namespace {
                 else if (strcmp(key, "SLEWDN") == 0)   Data::config.slewDown = val;
                 else if (strcmp(key, "STARTMIN") == 0) Data::config.startMin = (uint8_t)val;
                 else if (strcmp(key, "ZEROTO") == 0)   Data::config.zeroTimeout = (uint32_t)val;
+                else {
+                    Serial.print("  [PARSER] KEY not found: ");
+                    Serial.println(key);
+                }
             }
-
             tok = strtok_r(NULL, " ", &saveptr);
         }
     }
@@ -78,6 +85,7 @@ namespace {
         if (pos < sizeof(lineBuffer) - 1) {
             lineBuffer[pos++] = c;
         } else {
+            Serial.println("[PARSER] ERROR: Line too long!");
             pos = 0; 
         }
     }

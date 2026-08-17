@@ -36,7 +36,8 @@ void setup() {
 void loop() {
 	// Leitura de dados vindos do Arduino
 	while (UART::SerialArduino.available()) {
-        Parser::loop(UART::SerialArduino.read());
+		char c = UART::SerialArduino.read();
+		Parser::loop(c);
     }
 
 	// Funções dependentes de WiFi só são executadas se tiver WiFi
