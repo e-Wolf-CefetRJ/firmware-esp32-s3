@@ -61,11 +61,13 @@ namespace BLE {
         Serial.println("=============================================================");
         Serial.println("[BLE] Initializing...");
 
+        // 1. Inicializa e define o nome base
         NimBLEDevice::init("EWolf-Telemetry");
         NimBLEDevice::setDeviceName("EWolf-Telemetry");
         NimBLEDevice::setPower(ESP_PWR_LVL_P9);
         NimBLEDevice::setMTU(128);
 
+        // 2. Cria o Servidor e Serviço
         NimBLEServer* pServer = NimBLEDevice::createServer();
         pServer->setCallbacks(new MyServerCallbacks()); 
 
@@ -85,13 +87,29 @@ namespace BLE {
             NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE
         );
 
-        NimBLEAdvertising* adv = NimBLEDevice::getAdvertising();
-        adv->addServiceUUID(serviceUUID);
-        adv->setName("EWolf-Telemetry");
-        adv->setMinInterval(32);
-        adv->setMaxInterval(48);
+        // 3. Configuração do Advertising (CORRIGIDO - sem setCompleteName)
+        NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
 
-        if (adv->start()) {
+        // Dados do pacote principal (onde o nome realmente aparece na varredura)
+        NimBLEAdvertisementData advData;
+        advData.setName("EWolf-Telemetry");  // <-- Única linha necessária para o nome
+        advData.addServiceUUID(serviceUUID);
+
+        // Dados do scan response (resposta quando o celular pede mais info)
+        NimBLEAdvertisementData scanRespData;
+        scanRespData.setName("EWolf-Telemetry");
+
+        // Aplica os dados configurados
+        pAdvertising->setAdvertisementData(advData);
+        pAdvertising->setScanResponseData(scanRespData);
+        pAdvertising->enableScanResponse(true);
+        pAdvertising->setMinInterval(32);
+        pAdvertising->setMaxInterval(48);
+
+        // 4. INICIA o serviço e o advertising
+        pService->start();
+
+        if (pAdvertising->start()) {
             Serial.println("[BLE] Advertising inicialized as 'EWolf-Telemetry'");
         } else {
             Serial.println("[BLE] ERROR: Error of inicializing advertising!");
