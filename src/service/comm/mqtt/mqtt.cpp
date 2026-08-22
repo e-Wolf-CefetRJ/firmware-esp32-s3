@@ -27,7 +27,7 @@ namespace {
     };
 
     constexpr Config CONFIG = {
-        .host      =  "broker.mqtt-dashboard.com",
+        .host      =  "broker.emqx.io",
         .port      =  1883,
         .clientId  =  "EWolfTelemetryS3",
         .topics {
